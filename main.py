@@ -1,11 +1,13 @@
 import pandas as pd
 from datetime import date
+from flask import Flask, render_template, jsonify, request
+from werkzeug import secure_filename
 
-your_directory = input('Give your directory-->')
-filename = input('Give your file-->')
 
 def make_files(your_directory, filename):
 
+    # your_directory = input('Give your directory-->')
+    # filename = input('Give your file-->')
     df = pd.read_csv(your_directory+ "\\" + filename, header=1)
 
     d1 = date.today().strftime("%m-%d-%Y")
@@ -23,7 +25,26 @@ def make_files(your_directory, filename):
         df2 = df2.to_csv(your_directory + '\\' + f'{i}_OPEN_TICKET_{d1}.csv')
 
 
-# Press the green button in the gutter to run the script.
+
+
+app = Flask(__name__)
+
+
+@app.route('/')
+def main():
+    return render_template('upload.html')
+
+@app.route('/uploader', methods = ['GET', 'POST'])
+def uploader():
+   if request.method == 'POST':
+      f = request.files['file']
+      working_file = f.save(secure_filename(f.filename))
+      return 'file uploaded successfully'
+
+
+#make_files(your_directory, filename)
+
+
 if __name__ == '__main__':
-    make_files(your_directory, filename)
+    app.run(debug=True)
 
