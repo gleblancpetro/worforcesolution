@@ -2,13 +2,14 @@ import pandas as pd
 from datetime import date
 from flask import Flask, render_template, jsonify, request
 from werkzeug import secure_filename
+import os
 
-
-def make_files(your_directory, filename):
+def make_files(working_file):
 
     # your_directory = input('Give your directory-->')
     # filename = input('Give your file-->')
-    df = pd.read_csv(your_directory+ "\\" + filename, header=1)
+    df = pd.read_csv(working_file, header=1)
+    print(df.head())
 
     d1 = date.today().strftime("%m-%d-%Y")
 
@@ -22,8 +23,7 @@ def make_files(your_directory, filename):
         df2 = df1.loc[df1['IN'] == i]
         df2['ORDER DATE'] = pd.to_datetime(df2['ORDER DATE'])
         df2 = df2.sort_values(by='ORDER DATE')
-        df2 = df2.to_csv(your_directory + '\\' + f'{i}_OPEN_TICKET_{d1}.csv')
-
+        df2 = df2.to_csv(app.config['UPLOAD_FOLDER']+f'{i}_OPEN_TICKET_{d1}.csv')
 
 
 
@@ -37,12 +37,14 @@ def main():
 @app.route('/uploader', methods = ['GET', 'POST'])
 def uploader():
    if request.method == 'POST':
-      f = request.files['file']
-      working_file = f.save(secure_filename(f.filename))
-      return 'file uploaded successfully'
+      original = request.files['file']
+      filename = secure_filename(original.filename)
+      original.stream.seek(0)
+      print(original)
+      return make_files(original)
 
 
-#make_files(your_directory, filename)
+
 
 
 if __name__ == '__main__':
