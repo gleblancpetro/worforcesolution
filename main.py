@@ -2,6 +2,16 @@ import pandas as pd
 from datetime import date
 from flask import Flask, render_template, request, send_file
 from werkzeug import secure_filename
+import zipfile, os
+
+def zip_file():
+    zipf = zipfile.ZipFile("static\\Open_Ticket.zip", 'w', zipfile.ZIP_DEFLATED)
+    for root, dirs, files in os.walk('static\\'):
+        for file in files:
+            zipf.write('static\\' + file)
+    zipf.close()
+
+
 
 def make_files(working_file):
 
@@ -20,12 +30,23 @@ def make_files(working_file):
         df2 = df1.loc[df1['IN'] == i]
         df2['ORDER DATE'] = pd.to_datetime(df2['ORDER DATE'])
         df2 = df2.sort_values(by='ORDER DATE')
-        df2 = df2.to_csv(f'{i}_OPEN_TICKET_{d1}.csv')
-        send_file(f'{i}_OPEN_TICKET_{d1}.csv', as_attachment=True)
-    return ('Files split hopefully')
+        df2 = df2.to_csv(f'static\{i}_OPEN_TICKET_{d1}.csv')
+    zip_file()
+
+    return send_file('static\\Open_Ticket.zip',
+                     mimetype='zip',
+                     attachment_filename='Open_Tickets.zip',
+                     as_attachment=True)
+
+
+
+
+
+
 
 app = Flask(__name__)
-
+UPLOAD_FOLDER = 'static'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 @app.route('/')
 def main():
